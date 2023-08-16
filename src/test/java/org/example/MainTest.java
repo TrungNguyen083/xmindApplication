@@ -2,7 +2,8 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
-import java.text.Format;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,6 +13,8 @@ class MainTest {
     @Test
     public void testInitDefault() {
         CentralTopic centralTopic = new CentralTopic("Central Topic");
+        Point topic1Point = new Point();
+        topic1Point.calculatePoint();
         Topic topic1 = new Topic("Main Topic 1");
         Topic topic2 = new Topic("Main Topic 2");
         Topic topic3 = new Topic("Main Topic 3");
@@ -78,66 +81,114 @@ class MainTest {
 
 
     @Test
-    public void testOderTopic() {
-        Result result = getResult();
+    public void testReOderTopic() {
+        Result init = initData();
 
-        assertEquals(0, result.centralTopic.getListTopic().indexOf(result.mainTopic1));
-        assertEquals(2, result.centralTopic.getListTopic().indexOf(result.mainTopic3));
+        assertEquals(0, init.centralTopic.getListTopic().indexOf(init.mainTopic1));
+        assertEquals(2, init.centralTopic.getListTopic().indexOf(init.mainTopic3));
 
         //Swap position between mainTopic1 and mainTopic3:
-        result.centralTopic.oderTopic(result.mainTopic1, result.mainTopic3);
+        init.centralTopic.oderTopic(init.mainTopic1, init.mainTopic3);
 
-        assertEquals(2, result.centralTopic.getListTopic().indexOf(result.mainTopic1));
-        assertEquals(0, result.centralTopic.getListTopic().indexOf(result.mainTopic3));
+        assertEquals(2, init.centralTopic.getListTopic().indexOf(init.mainTopic1));
+        assertEquals(0, init.centralTopic.getListTopic().indexOf(init.mainTopic3));
     }
 
     @Test
     public void testMoveTopicToTopic() {
-        Result result = getResult();
+        Result init = initData();
         Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
         Topic subTopic12 = new Topic("Sub Topic 2 of Main Topic 1");
         Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
         Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
 
-        result.mainTopic1.addChild(subTopic11);
-        result.mainTopic1.addChild(subTopic12);
-        result.mainTopic2.addChild(subTopic21);
-        result.mainTopic3.addChild(subTopic31);
+        init.mainTopic1.addChild(subTopic11);
+        init.mainTopic1.addChild(subTopic12);
+        init.mainTopic2.addChild(subTopic21);
+        init.mainTopic3.addChild(subTopic31);
 
-        assertEquals(4, result.centralTopic.getListTopic().size());
-        assertEquals(2, result.mainTopic1.getListTopic().size());
+        assertEquals(4, init.centralTopic.getListTopic().size());
+        assertEquals(2, init.mainTopic1.getListTopic().size());
 
         //I want to move subTopic 2 of mainTopic 1 become a topic with same level with mainTopic
-        result.mainTopic1.moveTopicToTopic(subTopic12, result.centralTopic);
+        init.mainTopic1.moveTopicToTopic(subTopic12, init.centralTopic);
 
-        assertEquals(5, result.centralTopic.getListTopic().size());
-        assertEquals(1, result.mainTopic1.getListTopic().size());
+        assertEquals(5, init.centralTopic.getListTopic().size());
+        assertEquals(1, init.mainTopic1.getListTopic().size());
+    }
+
+    @Test
+    public void testMoveTopicsToTopic() {
+        Result init = initData();
+        Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
+        Topic subTopic12 = new Topic("Sub Topic 2 of Main Topic 1");
+        Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
+        Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
+
+        init.mainTopic1.addChild(subTopic11);
+        init.mainTopic1.addChild(subTopic12);
+        init.mainTopic2.addChild(subTopic21);
+        init.mainTopic3.addChild(subTopic31);
+
+        assertEquals(4, init.centralTopic.getListTopic().size());
+        assertEquals(1, init.mainTopic3.getListTopic().size());
+
+        //I want to move mainTopic2, mainTopic4 to have same level with subTopic31
+        init.centralTopic.moveSelectTopicsToTopic(init.mainTopic3, init.mainTopic2, init.mainTopic4);
+
+        assertEquals(2, init.centralTopic.getListTopic().size());
+        assertEquals(3, init.mainTopic3.getListTopic().size());
     }
 
     @Test
     public void testMoveTopicToFloatingTopic() {
-        Result result = getResult();
+        Result init = initData();
         Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
         Topic subTopic12 = new Topic("Sub Topic 2 of Main Topic 1");
         Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
         Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
 
-        result.mainTopic1.addChild(subTopic11);
-        result.mainTopic1.addChild(subTopic12);
-        result.mainTopic2.addChild(subTopic21);
-        result.mainTopic3.addChild(subTopic31);
+        init.mainTopic1.addChild(subTopic11);
+        init.mainTopic1.addChild(subTopic12);
+        init.mainTopic2.addChild(subTopic21);
+        init.mainTopic3.addChild(subTopic31);
 
-        assertEquals(0, result.centralTopic.getListFloatTopic().size());
-        assertEquals(1, result.mainTopic2.getListTopic().size());
+        assertEquals(0, init.centralTopic.getListFloatTopic().size());
+        assertEquals(1, init.mainTopic2.getListTopic().size());
 
         //I want to move subTopic 1 of mainTopic 2 to FloatingTopic
-        result.mainTopic2.moveTopicToFloatingTopic(subTopic21, result.centralTopic);
+        init.mainTopic2.moveTopicToFloatingTopic(subTopic21, init.centralTopic);
 
-        assertEquals(1, result.centralTopic.getListFloatTopic().size());
-        assertEquals(0, result.mainTopic2.getListTopic().size());
+        assertEquals(1, init.centralTopic.getListFloatTopic().size());
+        assertEquals(0, init.mainTopic2.getListTopic().size());
     }
 
-    private static Result getResult() {
+    @Test
+    public void testMoveTopicsToFloatingTopic() {
+        Result init = initData();
+        Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
+        Topic subTopic12 = new Topic("Sub Topic 2 of Main Topic 1");
+        Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
+        Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
+
+        init.mainTopic1.addChild(subTopic11);
+        init.mainTopic1.addChild(subTopic12);
+        init.mainTopic2.addChild(subTopic21);
+        init.mainTopic3.addChild(subTopic31);
+
+        assertEquals(0, init.centralTopic.getListFloatTopic().size());
+        assertEquals(4, init.centralTopic.getListTopic().size());
+        assertEquals(2, init.mainTopic1.getListTopic().size());
+
+        //I want to move mainTopic3 and subTopic12 to FloatingTopic
+        init.centralTopic.moveTopicsToFloatingTopic(init.mainTopic3, subTopic12);
+
+        assertEquals(2, init.centralTopic.getListFloatTopic().size());
+        assertEquals(3, init.centralTopic.getListTopic().size());
+        assertEquals(1, init.mainTopic1.getListTopic().size());
+    }
+
+    private static Result initData() {
         CentralTopic centralTopic = new CentralTopic("Central Topic");
         Topic mainTopic1 = new Topic("Main Topic 1");
         Topic mainTopic2 = new Topic("Main Topic 2");
@@ -156,152 +207,282 @@ class MainTest {
 
     @Test
     public void testMoveFloatingTopicToTopic() {
-        Result result = getResult();
+        Result init = initData();
         Topic floatingTopic1 = new Topic("Floating Topic 1");
         Topic floatingTopic2 = new Topic("Floating Topic 2");
         Topic floatingTopic3 = new Topic("Floating Topic 3");
 
-        result.centralTopic.addFloatChild(floatingTopic1, floatingTopic2, floatingTopic3);
+        init.centralTopic.addFloatChild(floatingTopic1, floatingTopic2, floatingTopic3);
 
         Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
         Topic subTopic12 = new Topic("Sub Topic 2 of Main Topic 1");
         Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
         Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
 
-        result.mainTopic1.addChild(subTopic11);
-        result.mainTopic1.addChild(subTopic12);
-        result.mainTopic2.addChild(subTopic21);
-        result.mainTopic3.addChild(subTopic31);
+        init.mainTopic1.addChild(subTopic11);
+        init.mainTopic1.addChild(subTopic12);
+        init.mainTopic2.addChild(subTopic21);
+        init.mainTopic3.addChild(subTopic31);
 
-        assertEquals(3, result.centralTopic.getListFloatTopic().size());
+        assertEquals(3, init.centralTopic.getListFloatTopic().size());
         assertEquals(0, subTopic11.getListTopic().size());
 
         //I want to move floatingTopic2 into subTopic 1 of MainTopic 1
-        result.centralTopic.moveFloatingTopicToTopic(floatingTopic2, subTopic11);
+        init.centralTopic.moveFloatingTopicToTopic(floatingTopic2, subTopic11);
 
-        assertEquals(2, result.centralTopic.getListFloatTopic().size());
+        assertEquals(2, init.centralTopic.getListFloatTopic().size());
         assertEquals(1, subTopic11.getListTopic().size());
     }
 
     @Test
-    public void testTopicHasManyRelationship() {
-        Result result = getResult();
-        Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
-        Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
-        Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
+    public void testMoveFloatTopicsAndTopicsToTopic() {
+        Result init = initData();
+        Topic floatingTopic1 = new Topic("Floating Topic 1");
+        Topic floatingTopic2 = new Topic("Floating Topic 2");
+        Topic floatingTopic3 = new Topic("Floating Topic 3");
 
-        result.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
+        init.centralTopic.addFloatChild(floatingTopic1, floatingTopic2, floatingTopic3);
 
-        assertEquals(0, result.centralTopic.getListRelationship().size());
-
-        result.centralTopic.addRelationship(subTopic11.getUuid(), result.mainTopic2.getUuid());
-        result.centralTopic.addRelationship(subTopic11.getUuid(), result.mainTopic3.getUuid());
-        result.centralTopic.addRelationship(subTopic11.getUuid(), subTopic21.getUuid());
-        result.centralTopic.addRelationship(subTopic11.getUuid(), subTopic31.getUuid());
-
-        assertEquals(4, result.centralTopic.getListRelationship().size());
-    }
-
-    @Test
-    public void testDeleteTopic() {
-        Result result = getResult();
-
-        var subTopic1 = new Topic("Sub Topic 1 of Main Topic 1");
-        var subTopic2 = new Topic("Sub Topic 2 of Main Topic 1");
-
-        result.mainTopic1.addChild(subTopic1, subTopic2);
-
-        assertEquals(4, result.centralTopic.getListTopic().size());
-
-        //I want to delete mainTopic1
-        result.centralTopic.deleteChild(result.mainTopic1);
-
-        assertEquals(3, result.centralTopic.getListTopic().size());
-    }
-
-    @Test
-    public void testDeleteListSelectTopic() {
-        Result result = getResult();
         Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
         Topic subTopic12 = new Topic("Sub Topic 2 of Main Topic 1");
         Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
         Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
 
-        result.mainTopic1.addChild(subTopic11);
-        result.mainTopic1.addChild(subTopic12);
-        result.mainTopic2.addChild(subTopic21);
-        result.mainTopic3.addChild(subTopic31);
+        init.mainTopic1.addChild(subTopic11);
+        init.mainTopic1.addChild(subTopic12);
+        init.mainTopic2.addChild(subTopic21);
+        init.mainTopic3.addChild(subTopic31);
 
-        assertEquals(4, result.centralTopic.getListTopic().size());
-        assertEquals(2, result.mainTopic1.getListTopic().size());
+        assertEquals(2, init.mainTopic1.getListTopic().size());
+        assertEquals(3, init.centralTopic.getListFloatTopic().size());
+        assertEquals(4, init.centralTopic.getListTopic().size());
 
-        result.centralTopic.deleteListSelectTopic(result.mainTopic2, result.mainTopic3, subTopic11);
+        //I want to move floatingTopic1, floatingTopic2, mainTopic3 into mainTopic1
+        init.centralTopic.moveSelectTopicsToTopic(init.mainTopic1, floatingTopic1, floatingTopic2, init.mainTopic3);
 
-        assertEquals(2, result.centralTopic.getListTopic().size());
-        assertEquals(1, result.mainTopic1.getListTopic().size());
+        assertEquals(5, init.mainTopic1.getListTopic().size());
+        assertEquals(1, init.centralTopic.getListFloatTopic().size());
+        assertEquals(3, init.centralTopic.getListTopic().size());
+    }
+
+    @Test
+    public void testDeleteTopic() {
+        Result init = initData();
+
+        var subTopic1 = new Topic("Sub Topic 1 of Main Topic 1");
+        var subTopic2 = new Topic("Sub Topic 2 of Main Topic 1");
+
+        init.mainTopic1.addChild(subTopic1, subTopic2);
+
+        assertEquals(4, init.centralTopic.getListTopic().size());
+
+        //I want to delete mainTopic1
+        init.centralTopic.deleteChild(init.mainTopic1);
+
+        assertEquals(3, init.centralTopic.getListTopic().size());
+    }
+
+    @Test
+    public void testDeleteListSelectTopic() {
+        Result init = initData();
+        Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
+        Topic subTopic12 = new Topic("Sub Topic 2 of Main Topic 1");
+        Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
+        Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
+
+        init.mainTopic1.addChild(subTopic11);
+        init.mainTopic1.addChild(subTopic12);
+        init.mainTopic2.addChild(subTopic21);
+        init.mainTopic3.addChild(subTopic31);
+
+        assertEquals(4, init.centralTopic.getListTopic().size());
+        assertEquals(2, init.mainTopic1.getListTopic().size());
+
+        init.centralTopic.deleteListSelectTopic(init.mainTopic2, init.mainTopic3, subTopic11);
+
+        assertEquals(2, init.centralTopic.getListTopic().size());
+        assertEquals(1, init.mainTopic1.getListTopic().size());
+    }
+
+    @Test
+    public void testTopicHasManyRelationship() {
+        Result init = initData();
+        Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
+        Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
+        Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
+
+        init.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
+
+        assertEquals(0, init.centralTopic.getListRelationship().size());
+
+        init.centralTopic.addRelationship(subTopic11.getID(), init.mainTopic2.getID());
+        init.centralTopic.addRelationship(subTopic11.getID(), init.mainTopic3.getID());
+        init.centralTopic.addRelationship(subTopic11.getID(), subTopic21.getID());
+        init.centralTopic.addRelationship(subTopic11.getID(), subTopic31.getID());
+
+        assertEquals(4, init.centralTopic.getListRelationship().size());
+    }
+
+    @Test
+    public void testAddRelationshipWithoutEnd2() {
+        Result init = initData();
+        Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
+        Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
+        Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
+
+        init.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
+
+        assertEquals(0, init.centralTopic.getListFloatTopic().size());
+        assertEquals(0, init.centralTopic.getListRelationship().size());
+
+        //I want to add a new relationship form subTopic21 to space point. And then application will create new floating point
+        init.centralTopic.addRelationship(subTopic21.getID());
+
+        assertEquals(1, init.centralTopic.getListFloatTopic().size());
+        assertEquals(1, init.centralTopic.getListRelationship().size());
+    }
+
+    @Test
+    public void testAddRelationshipWithoutAnyEnd() {
+        Result init = initData();
+
+        assertEquals(0, init.centralTopic.getListFloatTopic().size());
+        assertEquals(0, init.centralTopic.getListRelationship().size());
+
+        //I want to add a new relationship form subTopic21 to space point. And then application will create new floating point
+        init.centralTopic.addRelationship();
+
+        assertEquals(2, init.centralTopic.getListFloatTopic().size());
+        assertEquals(1, init.centralTopic.getListRelationship().size());
     }
 
     @Test
     public void testMoveHeadRelationship() {
-        Result result = getResult();
+        Result init = initData();
         Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
         Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
         Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
 
-        result.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
+        init.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
 
-        result.centralTopic.addRelationship(subTopic11.getUuid(), result.mainTopic2.getUuid());
-        result.centralTopic.addRelationship(subTopic11.getUuid(), result.mainTopic3.getUuid());
+        init.centralTopic.addRelationship(subTopic11.getID(), init.mainTopic2.getID());
+        init.centralTopic.addRelationship(subTopic11.getID(), init.mainTopic3.getID());
 
-        assertEquals(result.mainTopic2.getUuid(), result.centralTopic.getListRelationshipOfTopic(subTopic11).get(0).getEnd2ID());
+        assertEquals(init.mainTopic2.getID(), init.centralTopic.getRelationshipsOfTopic(subTopic11).get(0).getEnd2ID());
 
         //I want to change head of subTopic11 relationship from mainTopic2 to mainTopic4
-        result.centralTopic.moveHeadTopicRelationship(result.centralTopic.getListRelationshipOfTopic(subTopic11).get(0), result.mainTopic4);
+        init.centralTopic.moveHeadTopicRelationship(init.centralTopic.getRelationshipsOfTopic(subTopic11).get(0), init.mainTopic4);
 
-        assertEquals(2, result.centralTopic.getListRelationshipOfTopic(subTopic11).size());
-        assertEquals(result.mainTopic4.getUuid(), result.centralTopic.getListRelationshipOfTopic(subTopic11).get(0).getEnd2ID());
-    }
-
-    @Test public void testMoveTailRelationship()
-    {
-        Result result = getResult();
-        Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
-        Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
-        Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
-
-        result.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
-
-        result.centralTopic.addRelationship(subTopic11.getUuid(), result.mainTopic2.getUuid());
-        result.centralTopic.addRelationship(subTopic11.getUuid(), result.mainTopic3.getUuid());
-
-        assertEquals(result.mainTopic2.getUuid(), result.centralTopic.getListRelationshipOfTopic(subTopic11).get(0).getEnd2ID());
-        assertEquals(2, result.centralTopic.getListRelationshipOfTopic(subTopic11).size());
-
-        //I want to change tail of relationship(subTopic11,mainTopic2) to subTopic21 relationship(subTopic21,mainTopic2)
-        result.centralTopic.moveTailTopicRelationship(result.centralTopic.getListRelationshipOfTopic(subTopic11).get(0), subTopic21);
-
-        assertEquals(1, result.centralTopic.getListRelationshipOfTopic(subTopic11).size());
-        assertEquals(subTopic21.getUuid(), result.centralTopic.getListRelationshipOfTopic(subTopic21).get(0).getEnd1ID());
+        assertEquals(2, init.centralTopic.getRelationshipsOfTopic(subTopic11).size());
+        assertEquals(init.mainTopic4.getID(), init.centralTopic.getRelationshipsOfTopic(subTopic11).get(0).getEnd2ID());
     }
 
     @Test
-    public void deleteRelationship()
-    {
-        Result result = getResult();
+    public void testMoveTailRelationship() {
+        Result init = initData();
         Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
         Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
         Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
 
-        result.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
+        init.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
 
-        result.centralTopic.addRelationship(subTopic11.getUuid(), result.mainTopic2.getUuid());
-        result.centralTopic.addRelationship(subTopic11.getUuid(), result.mainTopic3.getUuid());
+        init.centralTopic.addRelationship(subTopic11.getID(), init.mainTopic2.getID());
+        init.centralTopic.addRelationship(subTopic11.getID(), init.mainTopic3.getID());
 
-        assertEquals(2, result.centralTopic.getListRelationshipOfTopic(subTopic11).size());
+        assertEquals(init.mainTopic2.getID(), init.centralTopic.getRelationshipsOfTopic(subTopic11).get(0).getEnd2ID());
+        assertEquals(2, init.centralTopic.getRelationshipsOfTopic(subTopic11).size());
+
+        //I want to change tail of relationship(subTopic11,mainTopic2) to subTopic21 relationship(subTopic21,mainTopic2)
+        init.centralTopic.moveTailTopicRelationship(init.centralTopic.getRelationshipsOfTopic(subTopic11).get(0), subTopic21);
+
+        assertEquals(1, init.centralTopic.getRelationshipsOfTopic(subTopic11).size());
+        assertEquals(subTopic21.getID(), init.centralTopic.getRelationshipsOfTopic(subTopic21).get(0).getEnd1ID());
+    }
+
+    @Test
+    public void deleteRelationship() {
+        Result init = initData();
+        Topic subTopic11 = new Topic("Sub Topic 1 of Main Topic 1");
+        Topic subTopic21 = new Topic("Sub Topic 1 of Main Topic 2");
+        Topic subTopic31 = new Topic("Sub Topic 1 of Main Topic 3");
+
+        init.mainTopic1.addChild(subTopic11, subTopic21, subTopic31);
+
+        init.centralTopic.addRelationship(subTopic11.getID(), init.mainTopic2.getID());
+        init.centralTopic.addRelationship(subTopic11.getID(), init.mainTopic3.getID());
+
+        assertEquals(2, init.centralTopic.getRelationshipsOfTopic(subTopic11).size());
 
         //Delete a relationship
-        result.centralTopic.removeRelationship(result.centralTopic.getListRelationshipOfTopic(subTopic11).get(0));
+        init.centralTopic.removeRelationship(init.centralTopic.getRelationshipsOfTopic(subTopic11).get(0));
 
-        assertEquals(1, result.centralTopic.getListRelationshipOfTopic(subTopic11).size());
+        assertEquals(1, init.centralTopic.getRelationshipsOfTopic(subTopic11).size());
+    }
+
+    @Test
+    public void testParentLineHeight() {
+        CentralTopic centralTopic = new CentralTopic("Central Topic", ContainValue.centralTopicHeight, ContainValue.centralTopicWidth, ContainValue.centralTopicFontSize, new Point(0, 0));
+        Topic mainTopic1 = new Topic("Main Topic 1", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic2 = new Topic("Main Topic 2", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic3 = new Topic("Main Topic 3", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic4 = new Topic("Main Topic 4", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+
+        centralTopic.addChild(mainTopic1, mainTopic2, mainTopic3, mainTopic4);
+
+        //Test central line height
+
+        assertEquals(300, centralTopic.getLineHeight());
+    }
+
+    @Test
+    public void testAssignTopic() {
+        CentralTopic centralTopic = new CentralTopic("Central Topic", ContainValue.centralTopicHeight, ContainValue.centralTopicWidth, ContainValue.centralTopicFontSize, new Point(0, 0));
+        Topic mainTopic1 = new Topic("Main Topic 1", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic2 = new Topic("Main Topic 2", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic3 = new Topic("Main Topic 3", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic4 = new Topic("Main Topic 4", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic5 = new Topic("Main Topic 5", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic6 = new Topic("Main Topic 6", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic7 = new Topic("Main Topic 7", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+
+        centralTopic.addChild(mainTopic1, mainTopic2, mainTopic3, mainTopic4, mainTopic5, mainTopic6, mainTopic7);
+
+        List<Topic> rightTopics = new ArrayList<>();
+        List<Topic> leftTopics = new ArrayList<>();
+
+        centralTopic.assignTopic(rightTopics, leftTopics);
+
+        assertEquals(3, rightTopics.size());
+        assertEquals(4, leftTopics.size());
+    }
+
+    @Test
+    public void testSetPosition() {
+        CentralTopic centralTopic = new CentralTopic("Central Topic", ContainValue.centralTopicHeight, ContainValue.centralTopicWidth, ContainValue.centralTopicFontSize, new Point(0, 0));
+        Topic mainTopic1 = new Topic("Main Topic 1", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic2 = new Topic("Main Topic 2", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic3 = new Topic("Main Topic 3", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic4 = new Topic("Main Topic 4", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+
+        centralTopic.addChild(mainTopic1, mainTopic2, mainTopic3, mainTopic4);
+
+        List<Topic> rightTopics = new ArrayList<>();
+        List<Topic> leftTopics = new ArrayList<>();
+
+        centralTopic.assignTopicPosition(rightTopics, leftTopics);
+
+        for (var item : centralTopic.getListTopic()) {
+            System.out.println(item.getTitle() + " Point(" + item.getPoint().getX() + ";" + item.getPoint().getY() + ")");
+        }
+
+//        assertEquals(350, mainTopic1.getPoint().getX());
+//        assertEquals(90, mainTopic1.getPoint().getY());
+//        assertEquals(350, mainTopic2.getPoint().getX());
+//        assertEquals(-90, mainTopic2.getPoint().getY());
+//        assertEquals(-300, mainTopic3.getPoint().getX());
+//        assertEquals(90, mainTopic3.getPoint().getY());
+//        assertEquals(-300, mainTopic4.getPoint().getX());
+//        assertEquals(-90, mainTopic4.getPoint().getY());
+
     }
 }

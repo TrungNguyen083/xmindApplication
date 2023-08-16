@@ -2,27 +2,26 @@ package org.example;
 
 import java.util.UUID;
 
-public class Relationship{
-    private UUID uuid;
+public class Relationship {
+    private UUID ID;
     private String title;
-    private UUID end1ID;
-    private UUID end2ID;
+    private UUID end1ID; //Tail
+    private UUID end2ID; //Head
+
+    private Point controlPoint;
+    private Point lineEndPoint;
+
+
 
 
     public Relationship(UUID end1ID, UUID end2ID) {
-        uuid = UUID.randomUUID();
-        this.end1ID = end1ID;
-        this.end2ID = end2ID;
-    }
-    public Relationship(UUID end1ID, UUID end2ID, String title) {
-        uuid = UUID.randomUUID();
-        this.title = title;
+        ID = UUID.randomUUID();
         this.end1ID = end1ID;
         this.end2ID = end2ID;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public UUID getID() {
+        return ID;
     }
 
     public UUID getEnd1ID() {
