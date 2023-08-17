@@ -2,8 +2,8 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -117,6 +117,7 @@ class MainTest {
         assertEquals(1, init.mainTopic1.getListTopic().size());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testMoveTopicsToTopic() {
         Result init = initData();
@@ -133,8 +134,10 @@ class MainTest {
         assertEquals(4, init.centralTopic.getListTopic().size());
         assertEquals(1, init.mainTopic3.getListTopic().size());
 
+        System.out.println(init.mainTopic1.getListTopic().size());
+
         //I want to move mainTopic2, mainTopic4 to have same level with subTopic31
-        init.centralTopic.moveSelectTopicsToTopic(init.mainTopic3, init.mainTopic2, init.mainTopic4);
+        init.centralTopic.moveSelectTopicsToTopic(init.mainTopic3, init.mainTopic2.getID(), init.mainTopic4.getID());
 
         assertEquals(2, init.centralTopic.getListTopic().size());
         assertEquals(3, init.mainTopic3.getListTopic().size());
@@ -163,6 +166,7 @@ class MainTest {
         assertEquals(0, init.mainTopic2.getListTopic().size());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testMoveTopicsToFloatingTopic() {
         Result init = initData();
@@ -181,7 +185,7 @@ class MainTest {
         assertEquals(2, init.mainTopic1.getListTopic().size());
 
         //I want to move mainTopic3 and subTopic12 to FloatingTopic
-        init.centralTopic.moveTopicsToFloatingTopic(init.mainTopic3, subTopic12);
+        init.centralTopic.moveTopicsToFloatingTopic(init.mainTopic3.getID(), subTopic12.getID());
 
         assertEquals(2, init.centralTopic.getListFloatTopic().size());
         assertEquals(3, init.centralTopic.getListTopic().size());
@@ -228,12 +232,13 @@ class MainTest {
         assertEquals(0, subTopic11.getListTopic().size());
 
         //I want to move floatingTopic2 into subTopic 1 of MainTopic 1
-        init.centralTopic.moveFloatingTopicToTopic(floatingTopic2, subTopic11);
+        init.centralTopic.moveFloatingTopicToTopic(floatingTopic2.getID(), subTopic11);
 
         assertEquals(2, init.centralTopic.getListFloatTopic().size());
         assertEquals(1, subTopic11.getListTopic().size());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testMoveFloatTopicsAndTopicsToTopic() {
         Result init = initData();
@@ -258,7 +263,7 @@ class MainTest {
         assertEquals(4, init.centralTopic.getListTopic().size());
 
         //I want to move floatingTopic1, floatingTopic2, mainTopic3 into mainTopic1
-        init.centralTopic.moveSelectTopicsToTopic(init.mainTopic1, floatingTopic1, floatingTopic2, init.mainTopic3);
+        init.centralTopic.moveSelectTopicsToTopic(init.mainTopic1, floatingTopic1.getID(), floatingTopic2.getID(), init.mainTopic3.getID());
 
         assertEquals(5, init.mainTopic1.getListTopic().size());
         assertEquals(1, init.centralTopic.getListFloatTopic().size());
@@ -277,7 +282,7 @@ class MainTest {
         assertEquals(4, init.centralTopic.getListTopic().size());
 
         //I want to delete mainTopic1
-        init.centralTopic.deleteChild(init.mainTopic1);
+        init.centralTopic.deleteChildByID(init.mainTopic1.getID());
 
         assertEquals(3, init.centralTopic.getListTopic().size());
     }
@@ -298,7 +303,7 @@ class MainTest {
         assertEquals(4, init.centralTopic.getListTopic().size());
         assertEquals(2, init.mainTopic1.getListTopic().size());
 
-        init.centralTopic.deleteListSelectTopic(init.mainTopic2, init.mainTopic3, subTopic11);
+        init.centralTopic.deleteListSelectTopic(init.mainTopic2.getID(), init.mainTopic3.getID(), subTopic11.getID());
 
         assertEquals(2, init.centralTopic.getListTopic().size());
         assertEquals(1, init.mainTopic1.getListTopic().size());
@@ -447,13 +452,10 @@ class MainTest {
 
         centralTopic.addChild(mainTopic1, mainTopic2, mainTopic3, mainTopic4, mainTopic5, mainTopic6, mainTopic7);
 
-        List<Topic> rightTopics = new ArrayList<>();
-        List<Topic> leftTopics = new ArrayList<>();
+        Map<String,List<Topic>> map = centralTopic.assignTopic();
 
-        centralTopic.assignTopic(rightTopics, leftTopics);
-
-        assertEquals(3, rightTopics.size());
-        assertEquals(4, leftTopics.size());
+        assertEquals(3, map.get("rightTopics").size());
+        assertEquals(4, map.get("leftTopics").size());
     }
 
     @Test
@@ -463,26 +465,32 @@ class MainTest {
         Topic mainTopic2 = new Topic("Main Topic 2", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
         Topic mainTopic3 = new Topic("Main Topic 3", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
         Topic mainTopic4 = new Topic("Main Topic 4", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic5 = new Topic("Main Topic 5", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic6 = new Topic("Main Topic 6", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
+        Topic mainTopic7 = new Topic("Main Topic 7", ContainValue.mainTopicHeight, ContainValue.mainTopicWidth, ContainValue.mainTopicFontSize);
 
-        centralTopic.addChild(mainTopic1, mainTopic2, mainTopic3, mainTopic4);
+        centralTopic.addChild(mainTopic1, mainTopic2, mainTopic3, mainTopic4, mainTopic5, mainTopic6, mainTopic7);
 
-        List<Topic> rightTopics = new ArrayList<>();
-        List<Topic> leftTopics = new ArrayList<>();
+        centralTopic.assignTopicPosition();
 
-        centralTopic.assignTopicPosition(rightTopics, leftTopics);
+//        for (var item : centralTopic.getListTopic()) {
+//            System.out.println(item.getTitle() + " Point(" + item.getPoint().getX() + ";" + item.getPoint().getY() + ")");
+//        }
 
-        for (var item : centralTopic.getListTopic()) {
-            System.out.println(item.getTitle() + " Point(" + item.getPoint().getX() + ";" + item.getPoint().getY() + ")");
-        }
-
-//        assertEquals(350, mainTopic1.getPoint().getX());
-//        assertEquals(90, mainTopic1.getPoint().getY());
-//        assertEquals(350, mainTopic2.getPoint().getX());
-//        assertEquals(-90, mainTopic2.getPoint().getY());
-//        assertEquals(-300, mainTopic3.getPoint().getX());
-//        assertEquals(90, mainTopic3.getPoint().getY());
-//        assertEquals(-300, mainTopic4.getPoint().getX());
-//        assertEquals(-90, mainTopic4.getPoint().getY());
+        assertEquals(350, mainTopic1.getPoint().getX());
+        assertEquals(90, mainTopic1.getPoint().getY());
+        assertEquals(350, mainTopic2.getPoint().getX());
+        assertEquals(-90, mainTopic2.getPoint().getY());
+        assertEquals(350, mainTopic3.getPoint().getX());
+        assertEquals(-180, mainTopic3.getPoint().getY());
+        assertEquals(-300, mainTopic4.getPoint().getX());
+        assertEquals(90, mainTopic4.getPoint().getY());
+        assertEquals(-300, mainTopic5.getPoint().getX());
+        assertEquals(-90, mainTopic5.getPoint().getY());
+        assertEquals(-300, mainTopic6.getPoint().getX());
+        assertEquals(-180, mainTopic6.getPoint().getY());
+        assertEquals(-300, mainTopic7.getPoint().getX());
+        assertEquals(-270, mainTopic7.getPoint().getY());
 
     }
 }

@@ -1,8 +1,6 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CentralTopic extends Topic {
@@ -70,6 +68,16 @@ public class CentralTopic extends Topic {
         return _listFloatTopic;
     }
 
+    public Topic getFloatingTopicByID(String topicID){
+        for (var item : this._listFloatTopic) {
+            if (item.getID() == topicID) {
+                return item;
+            }
+            item.getTopicByID(topicID);
+        }
+        return null;
+    }
+
     public void addFloatChild(Topic... subTopics) {
         for (var item : subTopics) {
             _listFloatTopic.add(item);
@@ -77,47 +85,53 @@ public class CentralTopic extends Topic {
         }
     }
 
-    public void moveFloatingTopicToTopic(Topic floatingTopicMove, Topic newParentTopic) {
-        newParentTopic.addChild(floatingTopicMove);
-        this.deleteFloatChild(floatingTopicMove);
+
+
+    public void moveFloatingTopicToTopic(String floatingTopicIDMove, Topic newParentTopic) {
+        Topic selectTopic = getFloatingTopicByID(floatingTopicIDMove);
+        this.deleteFloatChildByID(floatingTopicIDMove);
+        newParentTopic.addChild(selectTopic);
     }
 
-    public void deleteFloatChild(Topic... subTopics) {
-        for (var item : subTopics) {
-            this._listFloatTopic = removeElement(item, this._listFloatTopic);
+    public void deleteFloatChildByID(String... floatTopicsID) {
+        for (var element : floatTopicsID) {
+            List<Topic> filteredTopics = _listFloatTopic.stream()
+                    .filter(item -> item.getID() != element)
+                    .collect(Collectors.toList());
+            this._listFloatTopic = filteredTopics;
         }
     }
 
-    public void deleteListSelectTopic(Topic... selectTopics) { //ID
+    public void deleteListSelectTopic(String ... selectTopicIDs) { //ID
         //Delete Children
-        removeTopics(selectTopics);
+        removeTopics(selectTopicIDs);
         //Delete Floating
-        removeFloatingTopics(selectTopics);
+        removeFloatingTopics(selectTopicIDs);
     }
 
-    void removeFloatingTopics(Topic... topics) {
-        List<Topic> topicsNeedToRemove = new ArrayList<>();
-        for (var topic : topics) {
-            topicsNeedToRemove.add(topic);
+    void removeFloatingTopics(String... topicsID) {
+        List<String> topicsNeedToRemove = new ArrayList<>();
+        for (var topicID : topicsID) {
+            topicsNeedToRemove.add(topicID);
         }
         this.traversalFloating(topicsNeedToRemove);
     }
 
-    void traversalFloating(List<Topic> topicsNeedToRemove) {
+    void traversalFloating(List<String> topicsIDNeedToRemove) {
         for (var item : this.getListFloatTopic()) {
-            if (topicsNeedToRemove.contains(item)) {
-                this.deleteFloatChild(item);
-                topicsNeedToRemove.remove(item);
+            if (topicsIDNeedToRemove.contains(item.getID())) {
+                this.deleteFloatChildByID(item.getID());
+                topicsIDNeedToRemove.remove(item.getID());
             }
-            item.traversal(topicsNeedToRemove);
+            item.traversal(topicsIDNeedToRemove);
         }
     }
 
-    public void addRelationship(UUID end1ID, UUID end2ID) {
+    public void addRelationship(String end1ID, String end2ID) {
         this._listRelationshipTopic.add(new Relationship(end1ID, end2ID));
     }
 
-    public void addRelationship(UUID end1ID) {
+    public void addRelationship(String end1ID) {
         Topic newFloatingTopic = new Topic("Floating Topic");
         this.addFloatChild(newFloatingTopic);
         addRelationship(end1ID, newFloatingTopic.getID());
@@ -136,21 +150,31 @@ public class CentralTopic extends Topic {
     }
 
 
-    public void moveSelectTopicsToTopic(Topic newParentTopic, Topic... topicsToMove) {
-        deleteListSelectTopic(topicsToMove);
-        for (var item : topicsToMove) {
-            newParentTopic.addChild(item);
+    public void moveSelectTopicsToTopic(Topic newParentTopic, String ... topicsIDToMove) {
+        for (var itemID : topicsIDToMove) {
+            Topic selectTopic = getTopicByID(itemID);
+            deleteChildByID(itemID);
+            if(selectTopic == null)
+            {
+                selectTopic = getFloatingTopicByID(itemID);
+                deleteFloatChildByID(itemID);
+            }
+            newParentTopic.addChild(selectTopic);
         }
     }
 
-    public void moveTopicsToFloatingTopic(Topic... topicsToMove) {
-        deleteListSelectTopic(topicsToMove);
-        for (var item : topicsToMove) {
-            this.addFloatChild(item);
+    public void moveTopicsToFloatingTopic(String ... topicsIDToMove) {
+        deleteListSelectTopic(topicsIDToMove);
+        for (var itemID : topicsIDToMove) {
+            Topic selectTopic = getTopicByID(itemID);
+            this.addFloatChild(selectTopic);
         }
     }
 
-    public void assignTopic(List<Topic> rightTopics, List<Topic> leftTopics) {
+    public Map<String,List<Topic>> assignTopic() {
+        List<Topic> rightTopics = new ArrayList<>();
+        List<Topic> leftTopics = new ArrayList<>();
+        Map<String,List<Topic>> map =new HashMap();
         float sumLineHeight = 0;
         int sideLineHeight = Math.round((this.getLineHeight() - this.getHeight()) / 2);
         for (var item : getListTopic()) {
@@ -161,110 +185,82 @@ public class CentralTopic extends Topic {
                 leftTopics.add(item);
             }
         }
+        map.put("rightTopics",rightTopics);
+        map.put("leftTopics",leftTopics);
+        return map;
     }
 
-    public void assignTopicPosition(List<Topic> rightTopics, List<Topic> leftTopics) {
-        assignTopic(rightTopics, leftTopics);
+    public void assignTopicPosition() {
+        Map<String,List<Topic>> map = assignTopic();
         float sum1 = 0;
         float sum2 = 0;
+        int count1 = 0;
+        int count2 = 0;
+        int count3 = 0;
+        int count4 = 0;
         float x, y;
         int sideLineHeight = Math.round((this.getLineHeight() - this.getHeight()) / 4);
-        for (var item : rightTopics) {
+        //Split elements around central topic to 4 parts
+        for (int i = 0; i < (map.get("rightTopics")).size(); i++) {
             x = 0;
             y = 0;
-            sum1 = sum1 + sideLineHeight;
+            sum1 = sum1 + (map.get("rightTopics")).get(0).getLineHeight();
+
+            // Right side of central topic
             if (sum1 <= sideLineHeight) {
-                x = (this.getPoint().getX()) + this.getWidth() + ContainValue.spaceSizeHorizontal;
-                y = (this.getPoint().getY()) + item.getHeight() + ContainValue.spaceSizeVertical;
-                item.setPoint(new Point(x, y));
+                // First element of top right of central topic
+                if (count1 == 0) {
+                    x = (this.getPoint().getX()) + this.getWidth() + ContainValue.spaceSizeHorizontal;
+                    y = (this.getPoint().getY()) + (map.get("rightTopics")).get(i).getHeight() + ContainValue.spaceSizeVertical;
+                    count1 = 1;
+                } else {
+                    x = (map.get("rightTopics")).get(i - 1).getPoint().getX();
+                    y = ((map.get("rightTopics")).get(i - 1).getPoint().getY()) + ContainValue.spaceSizeVertical + (map.get("rightTopics")).get(i).getHeight();
+                }
+                (map.get("rightTopics")).get(i).setPoint(new Point(x, y));
+
             } else {
-                x = (this.getPoint().getX()) + this.getWidth() + ContainValue.spaceSizeHorizontal;
-                y = (this.getPoint().getY()) - item.getHeight() - ContainValue.spaceSizeVertical;
-                item.setPoint(new Point(x, y));
+                // First element of bottom right of central topic
+                if (count2 == 0) {
+                    x = (this.getPoint().getX()) + this.getWidth() + ContainValue.spaceSizeHorizontal;
+                    y = (this.getPoint().getY()) - (map.get("rightTopics")).get(i).getHeight() - ContainValue.spaceSizeVertical;
+                    count2 = 1;
+                } else {
+                    x = (map.get("rightTopics")).get(i - 1).getPoint().getX();
+                    y = ((map.get("rightTopics")).get(i - 1).getPoint().getY()) - ((map.get("rightTopics")).get(i - 1).getHeight()) - ContainValue.spaceSizeVertical;
+                }
+                (map.get("rightTopics")).get(i).setPoint(new Point(x, y));
             }
         }
-        for (var item : leftTopics) {
+
+        //Left side of central topic
+        for (int i = 0; i < (map.get("leftTopics")).size(); i++) {
             x = 0;
             y = 0;
-            sum2 = sum2 + sideLineHeight;
+            sum2 = sum2 + (map.get("leftTopics")).get(i).getLineHeight();
             if (sum2 <= sideLineHeight) {
-                x = (this.getPoint().getX()) - item.getWidth() - ContainValue.spaceSizeHorizontal;
-                y = (this.getPoint().getY()) + item.getHeight() + ContainValue.spaceSizeVertical;
-                item.setPoint(new Point(x, y));
+                //First element of top right of central topic
+                if (count3 == 0) {
+                    x = (this.getPoint().getX()) - (map.get("leftTopics")).get(i).getWidth() - ContainValue.spaceSizeHorizontal;
+                    y = (this.getPoint().getY()) + (map.get("leftTopics")).get(i).getHeight() + ContainValue.spaceSizeVertical;
+                    count3 = 1;
+                } else {
+                    x = (map.get("leftTopics")).get(i - 1).getPoint().getX();
+                    y = ((map.get("leftTopics")).get(i - 1).getPoint().getY()) + ContainValue.spaceSizeVertical + (map.get("leftTopics")).get(i).getHeight();
+                }
+                (map.get("leftTopics")).get(i).setPoint(new Point(x, y));
             } else {
-                x = (this.getPoint().getX()) - item.getWidth() - ContainValue.spaceSizeHorizontal;
-                y = (this.getPoint().getY()) - item.getHeight() - ContainValue.spaceSizeVertical;
-                item.setPoint(new Point(x, y));
+                //First element of bottom right of central topic
+                if (count4 == 0) {
+                    x = (this.getPoint().getX()) - (map.get("leftTopics")).get(i).getWidth() - ContainValue.spaceSizeHorizontal;
+                    y = (this.getPoint().getY()) - (map.get("leftTopics")).get(i).getHeight() - ContainValue.spaceSizeVertical;
+                    count4 = 1;
+                } else {
+                    x = (map.get("leftTopics")).get(i - 1).getPoint().getX();
+                    y = ((map.get("leftTopics")).get(i - 1).getPoint().getY()) - (map.get("leftTopics")).get(i - 1).getHeight() - ContainValue.spaceSizeVertical;
+                }
+                (map.get("leftTopics")).get(i).setPoint(new Point(x, y));
             }
         }
     }
-//    public void assignTopicPosition(List<Topic> rightTopics, List<Topic> leftTopics) {
-//        assignTopic(rightTopics, leftTopics);
-//        float sum1 = 0;
-//        float sum2 = 0;
-//        int count = 0;
-//        float x, y;
-//        int sideLineHeight = Math.round((this.get_lineHeight() - this.getHeight()) / 4);
-//        for (int i = 0; i < rightTopics.size(); i++) {
-//            x = 0;
-//            y = 0;
-//            sum1 = sum1 + rightTopics.get(0).get_lineHeight();
-//            if (sum1 <= sideLineHeight) {
-//                if(count == 0)
-//                {
-//                    x = (this.getPoint().getX()) + this.getWidth() + ContainValue.spaceSizeHorizontal;
-//                    y = (this.getPoint().getY()) + rightTopics.get(i).getHeight() + ContainValue.spaceSizeVertical;
-//                    count = 1;
-//                }
-//                else
-//                {
-//                    x = rightTopics.get(i - 1).getPoint().getX();
-//                    y = (rightTopics.get(i - 1).getPoint().getY()) + ContainValue.spaceSizeVertical + rightTopics.get(i).getHeight();
-//                }
-//                rightTopics.get(i).setPoint(new Point(x, y));
-//
-//            } else {
-//                count = 0;
-//                if(count == 0)
-//                {
-//                    x = (this.getPoint().getX()) + this.getWidth() + ContainValue.spaceSizeHorizontal;
-//                    y = (this.getPoint().getY()) - rightTopics.get(i).getHeight() - ContainValue.spaceSizeVertical;
-//                    count = 1;
-//                }
-//                else {
-//                    x = rightTopics.get(i - 1).getPoint().getX();
-//                    y = (rightTopics.get(i - 1).getPoint().getX()) - (rightTopics.get(i - 1).getHeight()) - ContainValue.spaceSizeVertical;
-//                }
-//                rightTopics.get(i).setPoint(new Point(x, y));
-//            }
-//        }
-//        for (int i = 0; i < leftTopics.size(); i++) {
-//            x = 0;
-//            y = 0;
-//            sum2 = sum2 + leftTopics.get(i).get_lineHeight();
-//            if (sum2 <= sideLineHeight) {
-//                if(i == 0)
-//                {
-//                    x = (this.getPoint().getX()) - leftTopics.get(i).getWidth() - ContainValue.spaceSizeHorizontal;
-//                    y = (this.getPoint().getY()) + leftTopics.get(i).getHeight() + ContainValue.spaceSizeVertical;
-//                }
-//                else {
-//                    x = leftTopics.get(i - 1).getPoint().getX();
-//                    y = (leftTopics.get(i - 1).getPoint().getY()) + ContainValue.spaceSizeVertical + leftTopics.get(i).getHeight();
-//                }
-//                leftTopics.get(i).setPoint(new Point(x, y));
-//            } else {
-//                if(i == 0)
-//                {
-//                    x = (this.getPoint().getX()) - leftTopics.get(i).getWidth() - ContainValue.spaceSizeHorizontal;
-//                    y = (this.getPoint().getY()) - leftTopics.get(i).getHeight() - ContainValue.spaceSizeVertical;
-//                }
-//                else {
-//                    x = leftTopics.get(i - 1).getPoint().getX();
-//                    y = (leftTopics.get(i - 1).getPoint().getX()) - leftTopics.get(i - 1).getHeight() - ContainValue.spaceSizeVertical;
-//                }
-//                leftTopics.get(i).setPoint(new Point(x, y));
-//            }
-//        }
-//    }
 }
